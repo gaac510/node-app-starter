@@ -24,7 +24,7 @@ services:
     volumes:
       # Postgres default data files location: https://github.com/docker-library/docs/blob/master/postgres/README.md#pgdata
       - ./db-postgres:/var/lib/postgresql/data
-    # user: 1000:1000
+    user: 1000:1000
     environment:
       # Env var ref: https://github.com/docker-library/docs/blob/master/postgres/README.md#environment-variables
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
