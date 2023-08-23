@@ -5,7 +5,7 @@ services:
     depends_on:
       - postgres
       - adminer
-    image: node:${NODE_CONTAINER_TAG}
+    image: node:${NODE_IMAGE_TAG}
     user: node
     ports:
       - 3000:3000 # Dev server port
@@ -13,17 +13,19 @@ services:
     working_dir: ${APP_DIR} # For convenience in case need to `exec` into the container
     volumes:
       - ./app:${APP_DIR}
+      - ./startup-scripts:/startup-scripts
+      - ./volumes/npm-global:${NPM_CONFIG_PREFIX}
     environment:
       # See recommendations at: https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md
       NPM_CONFIG_PREFIX: ${NPM_CONFIG_PREFIX}
-      PATH: ${REMOTE_PATH}:${NPM_CONFIG_PREFIX}/bin
-    command: ./bin/zzzDO_NOT_RUN_MANUALLY
+      CONFIGURED_REMOTE_PATH: ${REMOTE_PATH}
+    command: bash -c 'for file in /startup-scripts/*.sh; do $$file; done'
 
   postgres:
-    image: postgres:${POSTGRES_CONTAINER_TAG}
+    image: postgres:${POSTGRES_IMAGE_TAG}
     volumes:
       # Postgres default data files location: https://github.com/docker-library/docs/blob/master/postgres/README.md#pgdata
-      - ./db-postgres:/var/lib/postgresql/data
+      - ./volumes/db-postgres:/var/lib/postgresql/data
     user: 1000:1000
     environment:
       # Env var ref: https://github.com/docker-library/docs/blob/master/postgres/README.md#environment-variables
@@ -36,7 +38,7 @@ services:
     image: adminer # Just use latest.
     volumes:
       # For custom files for plugins requiring parameters; see: https://hub.docker.com/_/adminer
-      - ./adminer-plugins:/var/www/html/plugins-enabled
+      - ./volumes/adminer-plugins:/var/www/html/plugins-enabled
     ports:
       - 8080:8080
     environment:

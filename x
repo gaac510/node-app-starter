@@ -14,16 +14,23 @@ then
 elif [[ "$1" == '--detach' ]]
 then
     docker compose up --remove-orphans --wait
-elif [[ "$1" == '--standalone' ]]
+elif [[ "$1" == 'run' ]]
 then
     docker run --rm -it \
     -u "node" \
     -e "NPM_CONFIG_PREFIX=${NPM_CONFIG_PREFIX}" \
-    -e "PATH=${REMOTE_PATH}:${NPM_CONFIG_PREFIX}" \
+    -e "PATH=${REMOTE_PATH}:${NPM_CONFIG_PREFIX}/bin" \
     -v "${PWD}/app:${APP_DIR}" \
+    -v "${PWD}/volumes/npm-global:${NPM_CONFIG_PREFIX}" \
     -w "${APP_DIR}" \
-    "node:${NODE_CONTAINER_TAG}" \
+    "node:${NODE_IMAGE_TAG}" \
     "${@:2}" # pass in all but the first arguments
+elif [[ "$1" == 'remote-path' ]]
+then
+    docker run --rm -it \
+    -u "node" \
+    "node:${NODE_IMAGE_TAG}" \
+    bash -c 'echo $PATH'
 elif [[ "$1" == '--postgres' ]]
 then
     docker exec -it \
@@ -37,6 +44,7 @@ then
 elif [[ "$1" != -* ]]
 then
     docker exec -it \
+    -e "PATH=${REMOTE_PATH}:${NPM_CONFIG_PREFIX}/bin" \
     "${COMPOSE_PROJECT_NAME}-app-1" \
     "$@" # pass in all arguments
 else
